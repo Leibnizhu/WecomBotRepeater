@@ -14,7 +14,7 @@ case class MarkdownMessage(apiToken: String, content: String, mentionedMobileLis
   override def toJsonObject(): JsonObject = {
     val json = new JsonObject().put("content", content)
     if (mentionedMobileList != null && mentionedMobileList.nonEmpty) {
-      json.put("mentioned_mobile_list", new JsonArray(mentionedMobileList.asJava).toString)
+      json.put("mentioned_mobile_list", mentionedMobileList.asJava)
     }
     json
   }

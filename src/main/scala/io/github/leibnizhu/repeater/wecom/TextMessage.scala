@@ -13,7 +13,7 @@ case class TextMessage(apiToken: String, text: String, mentionedMobileList: List
   override def toJsonObject(): JsonObject = {
     val json = new JsonObject().put("content", text)
     if (mentionedMobileList != null && mentionedMobileList.nonEmpty) {
-      json.put("mentioned_mobile_list", new JsonArray(mentionedMobileList.asJava).toString)
+      json.put("mentioned_mobile_list", mentionedMobileList.asJava)
     }
     json
   }

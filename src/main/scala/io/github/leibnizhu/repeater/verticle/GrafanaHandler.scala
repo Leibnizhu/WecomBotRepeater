@@ -2,10 +2,11 @@ package io.github.leibnizhu.repeater.verticle
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
-import io.github.leibnizhu.repeater.Constants.REQ_PARAM_WECOM_BOT_TOKEN
+import io.github.leibnizhu.repeater.Constants.{REQ_PARAM_MENTION_PHONES, REQ_PARAM_WECOM_BOT_TOKEN, REQ_PARAM_WECOM_BOT_TYPE}
 import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, successResponse}
+import io.github.leibnizhu.repeater.wecom.MessageType
 import io.vertx.core.Handler
-import io.vertx.core.http.HttpServerResponse
+import io.vertx.core.http.{HttpServerRequest, HttpServerResponse}
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import org.slf4j.LoggerFactory
@@ -33,7 +34,7 @@ object GrafanaHandler {
         if (bodyAr.succeeded()) {
           val grafanaRequest = objectReader.readValue[GrafanaRequest](bodyAr.result().toString())
           log.debug(s"接收到Grafana请求,token:$token,请求内容:$grafanaRequest")
-          doSendWecomBot(startTime, token, grafanaRequest, response)
+          doSendWecomBot(startTime, token, request, grafanaRequest, response)
         } else {
           val costTime = System.currentTimeMillis() - startTime
           val cause = bodyAr.cause()
@@ -44,8 +45,11 @@ object GrafanaHandler {
     }
   }
 
-  private def doSendWecomBot(startTime: Long, token: String, grafanaRequest: GrafanaRequest, response: HttpServerResponse): Unit = {
-    grafanaRequest.toWecomBotRequest(token).send(sendAr => {
+  private def doSendWecomBot(startTime: Long, token: String, request: HttpServerRequest,
+                             grafanaRequest: GrafanaRequest, response: HttpServerResponse): Unit = {
+    val mentionPhoneList = Option(request.getParam(REQ_PARAM_MENTION_PHONES)).map(_.split(",").toList).orNull
+    val msgType = Option(request.getParam(REQ_PARAM_WECOM_BOT_TYPE)).map(MessageType.withName).getOrElse(MessageType.Markdown)
+    grafanaRequest.toWecomBotRequest(token, msgType, mentionPhoneList).send(sendAr => {
       val costTime = System.currentTimeMillis() - startTime
       if (sendAr.succeeded()) {
         log.info(s"发送企业微信机器人请求成功, 耗时${costTime}毫秒,响应:{}", sendAr.result())
