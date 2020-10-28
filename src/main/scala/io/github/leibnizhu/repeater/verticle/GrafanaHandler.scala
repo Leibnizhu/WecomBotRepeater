@@ -2,7 +2,7 @@ package io.github.leibnizhu.repeater.verticle
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
-import io.github.leibnizhu.repeater.Constants.{REQ_PARAM_MENTION_PHONES, REQ_PARAM_WECOM_BOT_TOKEN, REQ_PARAM_WECOM_BOT_TYPE}
+import io.github.leibnizhu.repeater.Constants.{REQ_PARAM_MENTIONED_LIST, REQ_PARAM_WECOM_BOT_TOKEN, REQ_PARAM_WECOM_BOT_TYPE}
 import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, successResponse}
 import io.github.leibnizhu.repeater.wecom.MessageType
 import io.vertx.core.Handler
@@ -47,9 +47,9 @@ object GrafanaHandler {
 
   private def doSendWecomBot(startTime: Long, token: String, request: HttpServerRequest,
                              grafanaRequest: GrafanaRequest, response: HttpServerResponse): Unit = {
-    val mentionPhoneList = Option(request.getParam(REQ_PARAM_MENTION_PHONES)).map(_.split(",").toList).orNull
+    val mentionedList = Option(request.getParam(REQ_PARAM_MENTIONED_LIST)).map(_.split(",").toList).orNull
     val msgType = Option(request.getParam(REQ_PARAM_WECOM_BOT_TYPE)).map(MessageType.withName).getOrElse(MessageType.Markdown)
-    grafanaRequest.toWecomBotRequest(token, msgType, mentionPhoneList).send(sendAr => {
+    grafanaRequest.toWecomBotRequest(token, msgType, mentionedList).send(sendAr => {
       val costTime = System.currentTimeMillis() - startTime
       if (sendAr.succeeded()) {
         log.info(s"发送企业微信机器人请求成功, 耗时${costTime}毫秒,响应:{}", sendAr.result())

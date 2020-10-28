@@ -23,7 +23,7 @@ class HttpVerticle extends AbstractVerticle {
   }
 
   def mountRouters(): Unit = {
-    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE/:$REQ_PARAM_MENTION_PHONES").handler(GrafanaHandler.grafanaToBot)
+    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE/:$REQ_PARAM_MENTIONED_LIST").handler(GrafanaHandler.grafanaToBot)
     mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE").handler(GrafanaHandler.grafanaToBot)
     mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN").handler(GrafanaHandler.grafanaToBot)
     mainRouter.post(s"/grafana").handler(GrafanaHandler.error)

@@ -25,18 +25,19 @@ case class GrafanaRequest(@JsonProperty("dashboardId") dashboardId: Int,
                           @JsonProperty("state") state: String,
                           @JsonProperty("tags") tags: JsonObject,
                           @JsonProperty("title") title: String) {
-  def toWecomBotRequest(token: String, msgType: MessageType, mentionedMobileList: List[String] = List()): WecomBotRequest = {
+  def toWecomBotRequest(token: String, msgType: MessageType, mentionedList: List[String] = null): WecomBotRequest = {
     msgType match {
       case Text =>
-        new WecomBotRequest(TextMessage(token, s"标题:${title},触发规则:${ruleName},信息:${message}", mentionedMobileList))
+        new WecomBotRequest(TextMessage(token, s"标题:${title},触发规则:${ruleName},信息:${message}", mentionedList))
       case Markdown =>
         new WecomBotRequest(MarkdownMessage(token, new MarkdownBuilder()
           .text("接收到Grafana通知,具体信息:").newLine()
           .quoted().text("标题:").colorStart("info").text(title).colorEnd().newLine()
           .quoted().text("触发规则:").colorStart("warning").text(ruleName).colorEnd().newLine()
           .quoted().text("信息:").colorStart("warning").text(message).colorEnd().newLine()
-          .quoted().text("链接:").hrefLink(ruleUrl, ruleUrl)
-          .toMarkdownString, mentionedMobileList))
+          .quoted().text("链接:").hrefLink(ruleUrl, ruleUrl).newLine()
+          .mentionUsers(mentionedList)
+          .toMarkdownString))
     }
   }
 }

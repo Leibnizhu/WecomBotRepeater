@@ -14,7 +14,7 @@ case class WecomBotRequest(msgContent: MessageContent) {
     val reqJson = new JsonObject()
     val msgType = MessageType.msgTypeName(msgContent.msgType())
     reqJson.put("msgtype", msgType)
-    reqJson.put(msgType, msgContent.toJsonObject)
+    reqJson.put(msgType, msgContent.toJsonObject())
     doSendReq(reqJson, msgContent.token(), handler)
   }
 }
