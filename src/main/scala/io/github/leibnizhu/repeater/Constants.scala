@@ -1,9 +1,7 @@
 package io.github.leibnizhu.repeater
 
-import java.io.File
-
-import io.vertx.core.{Context, Vertx}
 import io.vertx.core.json.JsonObject
+import io.vertx.core.{Context, Vertx}
 
 object Constants {
   /**

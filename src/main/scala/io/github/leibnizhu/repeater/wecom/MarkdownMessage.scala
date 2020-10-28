@@ -57,7 +57,7 @@ object MarkdownMessage {
       this
     }
 
-    def toMarkdownString(): String = sb.toString()
+    def toMarkdownString: String = sb.toString()
   }
 
 }

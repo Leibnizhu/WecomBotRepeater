@@ -3,10 +3,10 @@ package io.github.leibnizhu.repeater.verticle
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
 import io.github.leibnizhu.repeater.Constants.REQ_PARAM_WECOM_BOT_TOKEN
-import io.github.leibnizhu.repeater.util.ResponseUtil
 import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, successResponse}
+import io.vertx.core.Handler
 import io.vertx.core.http.HttpServerResponse
-import io.vertx.core.{AsyncResult, Future, Handler}
+import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import org.slf4j.LoggerFactory
 
@@ -32,7 +32,7 @@ object GrafanaHandler {
       request.body(bodyAr => {
         if (bodyAr.succeeded()) {
           val grafanaRequest = objectReader.readValue[GrafanaRequest](bodyAr.result().toString())
-          log.debug(s"接收到Grafana请求,token:${token},请求内容:${grafanaRequest}")
+          log.debug(s"接收到Grafana请求,token:$token,请求内容:$grafanaRequest")
           doSendWecomBot(startTime, token, grafanaRequest, response)
         } else {
           val costTime = System.currentTimeMillis() - startTime
@@ -49,7 +49,8 @@ object GrafanaHandler {
       val costTime = System.currentTimeMillis() - startTime
       if (sendAr.succeeded()) {
         log.info(s"发送企业微信机器人请求成功, 耗时${costTime}毫秒,响应:{}", sendAr.result())
-        response.end(successResponse(s"发送企业微信机器人请求成功, 耗时${costTime}毫秒", costTime).toString)
+        val result = new JsonObject().put("message", s"发送企业微信机器人请求成功, 耗时${costTime}毫秒").put("wecomResponse", sendAr.result())
+        response.end(successResponse(result, costTime).toString)
       } else {
         val cause = sendAr.cause()
         log.error(s"发送企业微信机器人请求失败, 耗时${costTime}毫秒", cause)
