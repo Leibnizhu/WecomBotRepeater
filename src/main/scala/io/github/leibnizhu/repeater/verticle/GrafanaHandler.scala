@@ -11,6 +11,8 @@ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import org.slf4j.LoggerFactory
 
+import scala.util.Try
+
 /**
  * @author Leibniz on 2020/10/28 11:40 AM
  */
@@ -26,22 +28,31 @@ object GrafanaHandler {
   def grafanaToBot: Handler[RoutingContext] = rc => {
     val startTime = System.currentTimeMillis()
     val (request, response) = (rc.request, rc.response.putHeader("content-type", "application/json;charset=UTF-8"))
-    val token = request.getParam(REQ_PARAM_WECOM_BOT_TOKEN)
-    if (token == null || token.trim.isEmpty) {
-      response.end(failResponse("企业微信机器人token不能为空!", System.currentTimeMillis() - startTime).toString)
-    } else {
-      request.body(bodyAr => {
-        if (bodyAr.succeeded()) {
-          val grafanaRequest = objectReader.readValue[GrafanaRequest](bodyAr.result().toString())
-          log.debug(s"接收到Grafana请求,token:$token,请求内容:$grafanaRequest")
-          doSendWecomBot(startTime, token, request, grafanaRequest, response)
-        } else {
-          val costTime = System.currentTimeMillis() - startTime
-          val cause = bodyAr.cause()
-          log.error(s"解析Grafana请求体失败, 耗时${costTime}毫秒", cause)
-          response.end(failResponse(cause, costTime).toString)
-        }
-      })
+    try {
+      val token = request.getParam(REQ_PARAM_WECOM_BOT_TOKEN)
+      if (token == null || token.trim.isEmpty) {
+        response.end(failResponse("企业微信机器人token不能为空!", System.currentTimeMillis() - startTime).toString)
+      } else {
+        request.body(bodyAr => {
+          if (bodyAr.succeeded()) {
+            try {
+              val grafanaRequest = objectReader.readValue[GrafanaRequest](bodyAr.result().toString())
+              log.debug(s"接收到Grafana请求,token:$token,请求内容:$grafanaRequest")
+              doSendWecomBot(startTime, token, request, grafanaRequest, response)
+            } catch {
+              case e: Exception =>
+                response.end(failResponse(e.getMessage, System.currentTimeMillis() - startTime).toString)
+            }
+          } else {
+            val costTime = System.currentTimeMillis() - startTime
+            val cause = bodyAr.cause()
+            log.error(s"解析Grafana请求体失败, 耗时${costTime}毫秒", cause)
+            response.end(failResponse(cause, costTime).toString)
+          }
+        })
+      }
+    } catch {
+      case e: Exception => response.end(failResponse(e.getMessage, System.currentTimeMillis() - startTime).toString)
     }
   }
 

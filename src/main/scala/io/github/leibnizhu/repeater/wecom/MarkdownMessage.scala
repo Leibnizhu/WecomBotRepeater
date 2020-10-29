@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 case class MarkdownMessage(apiToken: String, content: String) extends MessageContent {
   override def msgType(): MessageType = MessageType.Markdown
 
-  override def toJsonObject(): JsonObject = new JsonObject().put("content", content)
+  override def contentJsonObject(): JsonObject = new JsonObject().put("content", content)
 
   override def token(): String = apiToken
 }
@@ -36,13 +36,8 @@ object MarkdownMessage {
       this
     }
 
-    def colorStart(color: String): MarkdownBuilder = {
-      sb.append("<font color=\"").append(color).append("\">")
-      this
-    }
-
-    def colorEnd(): MarkdownBuilder = {
-      sb.append("</font>")
+    def colored(color: String, text: String): MarkdownBuilder = {
+      sb.append("<font color=\"").append(color).append("\">").append(text).append("</font>")
       this
     }
 

@@ -10,7 +10,7 @@ import collection.JavaConverters._
 case class TextMessage(apiToken: String, text: String, mentionedList: List[String] = List()) extends MessageContent {
   override def msgType(): MessageType = MessageType.Text
 
-  override def toJsonObject(): JsonObject = {
+  override def contentJsonObject(): JsonObject = {
     val json = new JsonObject().put("content", text)
     if (mentionedList != null && mentionedList.nonEmpty) {
       json.put("mentioned_mobile_list", mentionedList.asJava)

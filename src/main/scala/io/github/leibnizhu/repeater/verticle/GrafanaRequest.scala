@@ -28,16 +28,19 @@ case class GrafanaRequest(@JsonProperty("dashboardId") dashboardId: Int,
   def toWecomBotRequest(token: String, msgType: MessageType, mentionedList: List[String] = null): WecomBotRequest = {
     msgType match {
       case Text =>
-        new WecomBotRequest(TextMessage(token, s"标题:${title},触发规则:${ruleName},信息:${message}", mentionedList))
+        val textContent = s"标题:${title},触发规则:${ruleName},信息:${message}"
+        new WecomBotRequest(TextMessage(token, textContent, mentionedList))
       case Markdown =>
-        new WecomBotRequest(MarkdownMessage(token, new MarkdownBuilder()
+        val keyColor = if (title.startsWith("[OK]")) "info" else if (title.startsWith("[Alerting]")) "warning" else "comment"
+        val markdownContent = new MarkdownBuilder()
           .text("接收到Grafana通知,具体信息:").newLine()
-          .quoted().text("标题:").colorStart("info").text(title).colorEnd().newLine()
-          .quoted().text("触发规则:").colorStart("warning").text(ruleName).colorEnd().newLine()
-          .quoted().text("信息:").colorStart("warning").text(message).colorEnd().newLine()
+          .quoted().text("触发规则:").text(ruleName).newLine()
+          .quoted().text("标题:").colored(keyColor, title).newLine()
+          .quoted().text("信息:").colored(keyColor, message).newLine()
           .quoted().text("链接:").hrefLink(ruleUrl, ruleUrl).newLine()
           .mentionUsers(mentionedList)
-          .toMarkdownString))
+          .toMarkdownString
+        new WecomBotRequest(MarkdownMessage(token, markdownContent))
     }
   }
 }

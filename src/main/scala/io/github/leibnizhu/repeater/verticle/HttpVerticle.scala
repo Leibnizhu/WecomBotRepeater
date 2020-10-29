@@ -2,9 +2,10 @@ package io.github.leibnizhu.repeater.verticle
 
 import io.github.leibnizhu.repeater.Constants
 import io.github.leibnizhu.repeater.Constants._
-import io.vertx.core.AbstractVerticle
+import io.github.leibnizhu.repeater.util.ResponseUtil.failResponse
+import io.vertx.core.{AbstractVerticle, Handler}
 import io.vertx.core.http.HttpServer
-import io.vertx.ext.web.Router
+import io.vertx.ext.web.{Router, RoutingContext}
 import io.vertx.ext.web.handler.StaticHandler
 import org.slf4j.LoggerFactory
 
