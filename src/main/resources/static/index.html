@@ -5,18 +5,27 @@
     <title>接口文档</title>
 </head>
 <body>
-使用步骤:<br/>
+<b>使用步骤:</b><br/>
 1.新建一个企业微信bot，记下token<br/>
 2.Grafana -> Alerting -> Notification Channels -> New Channel, Type选Webhook, 地址填服务部署的地址/grafana/***(具体见下面接口列表),POST请求，保存<br/>
 3.Grafana监控的指标配置使用这个Channel<br/>
 4.把bot拉到需要的群<br/>
 <br/>
-接口列表:<br/>
+<b>接口列表:</b><br/>
+<b>默认格式:</b><br/>
 POST /grafana/${企业微信bot token}<br/>
+<br/>
+<b>指定格式:</b><br/>
 POST /grafana/${企业微信bot token}/Text  发送文本类型的消息<br/>
 POST /grafana/${企业微信bot token}/Markdown   发送markdown类型的消息<br/>
+或<br/>
+POST /grafana/${企业微信bot token}?wecomBotType=${Markdown/Text} <br/>
+<br/>
+<b>指定@的人:</b><br/>
 POST /grafana/${企业微信bot token}/Text/手机1,...,手机N  发送文本类型的消息,并@人<br/>
 POST /grafana/${企业微信bot token}/Markdown/邮箱1,...,邮箱N   发送markdown类型的消息,并@人<br/>
+或<br/>
+POST /grafana/${企业微信bot token}?wecomBotType=${Markdown/Text}&mentionedList=${@的人列表，逗号隔开，Text类型对应手机号，Markdown类型对应邮箱}<br/>
 <script type="text/javascript">
 </script>
 </body>
