@@ -5,7 +5,7 @@ import io.github.leibnizhu.repeater.verticle.GrafanaHandler.getClass
 import io.github.leibnizhu.repeater.wecom.WecomBotRequest.doSendReq
 import io.vertx.core.json.JsonObject
 import io.vertx.core.{AsyncResult, Handler}
-import io.vertx.ext.web.client.{WebClient, WebClientOptions}
+import io.vertx.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
 import org.slf4j.LoggerFactory
 
 /**

@@ -6,12 +6,10 @@ import io.github.leibnizhu.repeater.Constants.{REQ_PARAM_MENTIONED_LIST, REQ_PAR
 import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, successResponse}
 import io.github.leibnizhu.repeater.wecom.MessageType
 import io.vertx.core.Handler
-import io.vertx.core.http.{HttpServerRequest, HttpServerResponse}
+import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import org.slf4j.LoggerFactory
-
-import scala.util.Try
 
 /**
  * @author Leibniz on 2020/10/28 11:40 AM
@@ -38,26 +36,24 @@ object GrafanaHandler {
             try {
               val grafanaRequest = objectReader.readValue[GrafanaRequest](bodyAr.result().toString())
               log.debug(s"接收到Grafana请求,token:$token,请求内容:$grafanaRequest")
-              doSendWecomBot(startTime, token, request, grafanaRequest, response)
+              doSendWecomBot(startTime, token, rc, grafanaRequest)
             } catch {
               case e: Exception =>
-                response.end(failResponse(e.getMessage, System.currentTimeMillis() - startTime).toString)
+                handlerException("解析Grafana请求Json", startTime, response, e)
             }
           } else {
-            val costTime = System.currentTimeMillis() - startTime
-            val cause = bodyAr.cause()
-            log.error(s"解析Grafana请求体失败, 耗时${costTime}毫秒", cause)
-            response.end(failResponse(cause, costTime).toString)
+            handlerException("解析Grafana请求体", startTime, response, bodyAr.cause())
           }
         })
       }
     } catch {
-      case e: Exception => response.end(failResponse(e.getMessage, System.currentTimeMillis() - startTime).toString)
+      case e: Exception =>
+        handlerException("解析Grafana请求", startTime, response, e)
     }
   }
 
-  private def doSendWecomBot(startTime: Long, token: String, request: HttpServerRequest,
-                             grafanaRequest: GrafanaRequest, response: HttpServerResponse): Unit = {
+  private def doSendWecomBot(startTime: Long, token: String, rc: RoutingContext, grafanaRequest: GrafanaRequest): Unit = {
+    val (request, response) = (rc.request, rc.response)
     val mentionedList = Option(request.getParam(REQ_PARAM_MENTIONED_LIST)).map(_.split(",").toList).orNull
     val msgType = Option(request.getParam(REQ_PARAM_WECOM_BOT_TYPE)).map(MessageType.withName).getOrElse(MessageType.Markdown)
     grafanaRequest.toWecomBotRequest(token, msgType, mentionedList).send(sendAr => {
@@ -67,10 +63,14 @@ object GrafanaHandler {
         val result = new JsonObject().put("message", s"发送企业微信机器人请求成功, 耗时${costTime}毫秒").put("wecomResponse", sendAr.result())
         response.end(successResponse(result, costTime).toString)
       } else {
-        val cause = sendAr.cause()
-        log.error(s"发送企业微信机器人请求失败, 耗时${costTime}毫秒", cause)
-        response.end(failResponse(cause, costTime).toString)
+        handlerException("发送企业微信机器人请求", startTime, response, sendAr.cause())
       }
     })
+  }
+
+  private def handlerException(errMsg: String, startTime: Long, response: HttpServerResponse, cause: Throwable) = {
+    val costTime = System.currentTimeMillis() - startTime
+    log.error(s"${errMsg}失败, 耗时${costTime}毫秒:" + cause.getMessage, cause)
+    response.end(failResponse(cause, costTime).toString)
   }
 }
