@@ -2,6 +2,7 @@ package io.github.leibnizhu.repeater.verticle
 
 import io.github.leibnizhu.repeater.Constants
 import io.github.leibnizhu.repeater.Constants._
+import io.github.leibnizhu.repeater.util.ResponseUtil
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Router
@@ -26,7 +27,11 @@ class HttpVerticle extends AbstractVerticle {
     mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE/:$REQ_PARAM_MENTIONED_LIST").handler(GrafanaHandler.grafanaToBot)
     mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE").handler(GrafanaHandler.grafanaToBot)
     mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN").handler(GrafanaHandler.grafanaToBot)
-    mainRouter.post(s"/grafana").handler(GrafanaHandler.error)
+    mainRouter.post(s"/grafana").handler(ResponseUtil.emptyTokenError)
+    mainRouter.post(s"/sentry/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE/:$REQ_PARAM_MENTIONED_LIST").handler(SentryHandler.sentryToBot)
+    mainRouter.post(s"/sentry/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE").handler(SentryHandler.sentryToBot)
+    mainRouter.post(s"/sentry/:$REQ_PARAM_WECOM_BOT_TOKEN").handler(SentryHandler.sentryToBot)
+    mainRouter.post(s"/sentry").handler(ResponseUtil.emptyTokenError)
     mainRouter.get("/*").handler(StaticHandler.create.setWebRoot("static"))
   }
 

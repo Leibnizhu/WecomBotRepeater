@@ -1,9 +1,9 @@
 package io.github.leibnizhu.repeater.wecom
 
 import io.github.leibnizhu.repeater.Constants
-import io.github.leibnizhu.repeater.verticle.GrafanaHandler.getClass
 import io.github.leibnizhu.repeater.wecom.WecomBotRequest.doSendReq
 import io.github.leibnizhu.repeater.wecom.message.MessageContent
+import io.vertx.core.buffer.Buffer
 import io.vertx.core.json.JsonObject
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 case class WecomBotRequest(msgContent: MessageContent) {
   private val log = LoggerFactory.getLogger(getClass)
 
-  def send(handler: Handler[AsyncResult[String]]): Unit = {
+  def send(handler: Handler[AsyncResult[HttpResponse[Buffer]]]): Unit = {
     val reqJson = msgContent.wholeJson()
     if (log.isDebugEnabled) {
       log.debug("构造企业微信机器人请求:{}", reqJson)
@@ -27,11 +27,9 @@ case class WecomBotRequest(msgContent: MessageContent) {
 object WecomBotRequest {
   private val client = WebClient.create(Constants.vertx, new WebClientOptions().setKeepAlive(true))
 
-  def doSendReq(req: JsonObject, token: String, handler: Handler[AsyncResult[String]]): Unit = {
+  def doSendReq(req: JsonObject, token: String, handler: Handler[AsyncResult[HttpResponse[Buffer]]]): Unit = {
     client
       .postAbs(Constants.WECOM_BOT_API_URL + token)
-      .sendJsonObject(req, sendAr =>
-        handler.handle(sendAr.map(_.bodyAsString))
-      )
+      .sendJsonObject(req, handler)
   }
 }
