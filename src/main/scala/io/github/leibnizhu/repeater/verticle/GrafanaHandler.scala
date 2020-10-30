@@ -1,10 +1,14 @@
 package io.github.leibnizhu.repeater.verticle
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
 import io.github.leibnizhu.repeater.Constants.{REQ_PARAM_MENTIONED_LIST, REQ_PARAM_WECOM_BOT_TOKEN, REQ_PARAM_WECOM_BOT_TYPE}
 import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, successResponse}
-import io.github.leibnizhu.repeater.wecom.MessageType
+import io.github.leibnizhu.repeater.wecom.message.MarkdownMessage.MarkdownBuilder
+import io.github.leibnizhu.repeater.wecom.WecomBotRequest
+import io.github.leibnizhu.repeater.wecom.message.{MarkdownMessage, MessageType, TextMessage}
+import io.github.leibnizhu.repeater.wecom.message.MessageType.{Markdown, MessageType, Text}
 import io.vertx.core.Handler
 import io.vertx.core.http.HttpServerResponse
 import io.vertx.core.json.JsonObject
@@ -72,5 +76,41 @@ object GrafanaHandler {
     val costTime = System.currentTimeMillis() - startTime
     log.error(s"${errMsg}失败, 耗时${costTime}毫秒:" + cause.getMessage, cause)
     response.end(failResponse(cause, costTime).toString)
+  }
+}
+
+case class EvalMatch(@JsonProperty("value") value: Int,
+                     @JsonProperty("metric") metric: String,
+                     @JsonProperty("tags") tags: JsonObject)
+
+case class GrafanaRequest(@JsonProperty("dashboardId") dashboardId: Int,
+                          @JsonProperty("evalMatches") evalMatches: List[EvalMatch],
+                          @JsonProperty("imageUrl") imageUrl: String,
+                          @JsonProperty("message") message: String,
+                          @JsonProperty("orgId") orgId: Int,
+                          @JsonProperty("panelId") panelId: Int,
+                          @JsonProperty("ruleId") ruleId: Int,
+                          @JsonProperty("ruleName") ruleName: String,
+                          @JsonProperty("ruleUrl") ruleUrl: String,
+                          @JsonProperty("state") state: String,
+                          @JsonProperty("tags") tags: JsonObject,
+                          @JsonProperty("title") title: String) {
+  def toWecomBotRequest(token: String, msgType: MessageType, mentionedList: List[String] = null): WecomBotRequest = {
+    msgType match {
+      case Text =>
+        val textContent = s"标题:${title},触发规则:${ruleName},信息:${message}"
+        new WecomBotRequest(TextMessage(token, textContent, mentionedList))
+      case Markdown =>
+        val keyColor = if (title.startsWith("[OK]")) "info" else if (title.startsWith("[Alerting]")) "warning" else "comment"
+        val markdownContent = new MarkdownBuilder()
+          .text("接收到Grafana通知,具体信息:").newLine()
+          .quoted().text("触发规则:").text(ruleName).newLine()
+          .quoted().text("标题:").colored(keyColor, title).newLine()
+          .quoted().text("信息:").colored(keyColor, message).newLine()
+          .quoted().text("链接:").hrefLink(ruleUrl, ruleUrl).newLine()
+          .mentionUsers(mentionedList)
+          .toMarkdownString
+        new WecomBotRequest(MarkdownMessage(token, markdownContent))
+    }
   }
 }

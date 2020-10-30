@@ -1,4 +1,4 @@
-package io.github.leibnizhu.repeater.wecom
+package io.github.leibnizhu.repeater.wecom.message
 
 /**
  * @author Leibniz on 2020/10/28 2:15 PM

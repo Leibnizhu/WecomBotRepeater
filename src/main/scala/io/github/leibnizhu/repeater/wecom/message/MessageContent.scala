@@ -1,6 +1,6 @@
-package io.github.leibnizhu.repeater.wecom
+package io.github.leibnizhu.repeater.wecom.message
 
-import io.github.leibnizhu.repeater.wecom.MessageType.MessageType
+import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
 import io.vertx.core.json.JsonObject
 
 /**

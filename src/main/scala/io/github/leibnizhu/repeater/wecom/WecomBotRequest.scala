@@ -3,6 +3,7 @@ package io.github.leibnizhu.repeater.wecom
 import io.github.leibnizhu.repeater.Constants
 import io.github.leibnizhu.repeater.verticle.GrafanaHandler.getClass
 import io.github.leibnizhu.repeater.wecom.WecomBotRequest.doSendReq
+import io.github.leibnizhu.repeater.wecom.message.MessageContent
 import io.vertx.core.json.JsonObject
 import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.web.client.{HttpResponse, WebClient, WebClientOptions}

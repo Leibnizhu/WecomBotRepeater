@@ -1,9 +1,7 @@
-package io.github.leibnizhu.repeater.wecom
+package io.github.leibnizhu.repeater.wecom.message
 
-import io.github.leibnizhu.repeater.wecom.MessageType.MessageType
-import io.vertx.core.json.{JsonArray, JsonObject}
-
-import scala.collection.JavaConverters._
+import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
+import io.vertx.core.json.JsonObject
 
 /**
  * @author Leibniz on 2020/10/28 3:17 PM
