@@ -37,7 +37,7 @@ case class GrafanaRequest(@JsonProperty dashboardId: Int,
                           @JsonProperty ruleName: String,
                           @JsonProperty ruleUrl: String,
                           @JsonProperty state: String,
-                          @JsonProperty tags: JsonObject,
+                          @JsonProperty tags: Map[String, Object],
                           @JsonProperty title: String
                          ) extends RequestEntity {
   override def toWecomBotTextRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
