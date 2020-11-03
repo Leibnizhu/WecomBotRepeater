@@ -35,20 +35,18 @@ case class SentryRequest(@JsonProperty("project_name") projectName: String,
                          @JsonProperty logger: Object,
                         ) extends RequestEntity {
   override def toWecomBotTextRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
-    //TODO
-    val textContent = "TODO"
+    val textContent = s"接收到${level}级别的Sentry通知,异常信息:$message,根本原因:$culprit,请求路径:${event.request.url}.\n详细信息参见:$url."
     new WecomBotRequest(TextMessage(token, textContent, mentionedList))
   }
 
   override def toWecomBotMarkdownRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
-    //TODO
-    val keyColor = "TODO"
+    val keyColor = if (level.equalsIgnoreCase("error")) "warning" else "comment"
     val markdownContent = new MarkdownBuilder()
-      .text("接收到Sentry通知,具体信息:").newLine()
-      .quoted().text("触发规则:").text("ruleName").newLine()
-      .quoted().text("标题:").colored(keyColor, "title").newLine()
-      .quoted().text("信息:").colored(keyColor, message).newLine()
-      .quoted().text("链接:").hrefLink("", "ruleUrl").newLine()
+      .text("接收到").colored(keyColor, level).text("级别的").hrefLink("Sentry通知", url).text("具体信息:").newLine()
+      .quoted().text("异常信息:").colored(keyColor, message).newLine()
+      .quoted().text("根本原因:").text(culprit).newLine()
+      .quoted().text("请求路径:").text(event.request.url).newLine()
+      //      .quoted().hrefLink("详细信息链接", url).newLine()
       .mentionUsers(mentionedList)
       .toMarkdownString
     new WecomBotRequest(MarkdownMessage(token, markdownContent))
