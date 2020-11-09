@@ -8,7 +8,6 @@ import io.github.leibnizhu.repeater.wecom.message.MarkdownMessage.MarkdownBuilde
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
 import io.github.leibnizhu.repeater.wecom.message.{MarkdownMessage, TextMessage}
 import io.vertx.core.Handler
-import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.RoutingContext
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -25,7 +24,7 @@ object GrafanaHandler extends RequestBodyJsonHandler[GrafanaRequest] {
 
 case class EvalMatch(@JsonProperty value: Int,
                      @JsonProperty metric: String,
-                     @JsonProperty tags: JsonObject)
+                     @JsonProperty tags: Map[String, String])
 
 case class GrafanaRequest(@JsonProperty dashboardId: Int,
                           @JsonProperty evalMatches: List[EvalMatch],
@@ -37,7 +36,7 @@ case class GrafanaRequest(@JsonProperty dashboardId: Int,
                           @JsonProperty ruleName: String,
                           @JsonProperty ruleUrl: String,
                           @JsonProperty state: String,
-                          @JsonProperty tags: Map[String, Object],
+                          @JsonProperty tags: Map[String, String],
                           @JsonProperty title: String
                          ) extends RequestEntity {
   override def toWecomBotTextRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
