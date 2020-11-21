@@ -42,7 +42,7 @@ class GrafanaRequestTest extends FunSuite {
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "markdown")
     assert(reqJson.getJsonObject("markdown") != null)
-    assert(reqJson.getJsonObject("markdown").getString("content") == "接收到Grafana通知,具体信息:\n> 触发规则:Test notification\n> 标题:<font color=\"warning\">[Alerting] Test notification</font>\n> 信息:<font color=\"warning\">Someone is testing the alert notification within Grafana.</font>\n> 链接:[https://www.baidu.com/](https://www.baidu.com/)\n")
+    assert(reqJson.getJsonObject("markdown").getString("content") == "接收到Grafana通知,具体信息:\n> 触发规则:[Test notification](https://www.baidu.com/)\n> 标题:<font color=\"warning\">[Alerting] Test notification</font>\n> 信息:<font color=\"warning\">Someone is testing the alert notification within Grafana.</font>\n> 当前Dashboard还存在的警告:<font color=\"warning\">Test notification</font>\n")
   }
 
   test("markdownMessageWithMentionTest") {
@@ -51,6 +51,6 @@ class GrafanaRequestTest extends FunSuite {
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "markdown")
     assert(reqJson.getJsonObject("markdown") != null)
-    assert(reqJson.getJsonObject("markdown").getString("content") == "接收到Grafana通知,具体信息:\n> 触发规则:Test notification\n> 标题:<font color=\"warning\">[Alerting] Test notification</font>\n> 信息:<font color=\"warning\">Someone is testing the alert notification within Grafana.</font>\n> 链接:[https://www.baidu.com/](https://www.baidu.com/)\n<@test@google.com>")
+    assert(reqJson.getJsonObject("markdown").getString("content") == "接收到Grafana通知,具体信息:\n> 触发规则:[Test notification](https://www.baidu.com/)\n> 标题:<font color=\"warning\">[Alerting] Test notification</font>\n> 信息:<font color=\"warning\">Someone is testing the alert notification within Grafana.</font>\n> 当前Dashboard还存在的警告:<font color=\"warning\">Test notification</font>\n<@test@google.com>")
   }
 }

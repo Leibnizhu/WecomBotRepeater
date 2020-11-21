@@ -1,6 +1,7 @@
 package io.github.leibnizhu.repeater.verticle
 
-import com.fasterxml.jackson.databind.ObjectReader
+import com.fasterxml.jackson.databind.{ObjectMapper, ObjectReader}
+import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
 import io.github.leibnizhu.repeater.Constants.{REQ_PARAM_MENTIONED_LIST, REQ_PARAM_WECOM_BOT_TOKEN, REQ_PARAM_WECOM_BOT_TYPE}
 import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, handlerException, successResponse}
 import io.github.leibnizhu.repeater.wecom.message.MessageType
@@ -19,6 +20,7 @@ import org.slf4j.Logger
  * @author Leibniz on 2020/10/30 6:52 PM
  */
 trait RequestBodyJsonHandler[Req <: RequestEntity] {
+  protected val mapper: ObjectMapper = (new ObjectMapper() with ScalaObjectMapper).registerModule(DefaultScalaModule)
   protected val requestName: String
   protected val log: Logger
   protected val objectReader: ObjectReader

@@ -1,8 +1,7 @@
 package io.github.leibnizhu.repeater.verticle
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.{ObjectMapper, ObjectReader}
-import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
+import com.fasterxml.jackson.databind.ObjectReader
 import io.github.leibnizhu.repeater.wecom.WecomBotRequest
 import io.github.leibnizhu.repeater.wecom.message.MarkdownMessage.MarkdownBuilder
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
@@ -17,7 +16,7 @@ import org.slf4j.{Logger, LoggerFactory}
 object SentryHandler extends RequestBodyJsonHandler[SentryRequest] {
   override protected val requestName: String = "Sentry"
   override protected val log: Logger = LoggerFactory.getLogger(getClass)
-  override protected val objectReader: ObjectReader = (new ObjectMapper() with ScalaObjectMapper).registerModule(DefaultScalaModule).readerFor(classOf[SentryRequest])
+  override protected val objectReader: ObjectReader = mapper.readerFor(classOf[SentryRequest])
 
   def sentryToBot: Handler[RoutingContext] = parseRequestBodyAndSendBot
 }
