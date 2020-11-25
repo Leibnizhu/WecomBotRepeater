@@ -1,11 +1,10 @@
-package io.github.leibnizhu.repeater.verticle
+package io.github.leibnizhu.repeater.http
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectReader
-import io.github.leibnizhu.repeater.wecom.WecomBotRequest
 import io.github.leibnizhu.repeater.wecom.message.MarkdownMessage.MarkdownBuilder
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
-import io.github.leibnizhu.repeater.wecom.message.{MarkdownMessage, TextMessage}
+import io.github.leibnizhu.repeater.wecom.message.{MarkdownMessage, MessageContent, TextMessage}
 import io.vertx.core.Handler
 import io.vertx.ext.web.RoutingContext
 import org.slf4j.{Logger, LoggerFactory}
@@ -33,12 +32,12 @@ case class SentryRequest(@JsonProperty("project_name") projectName: String,
                          @JsonProperty project: String,
                          @JsonProperty logger: Object,
                         ) extends RequestEntity {
-  override def toWecomBotTextRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
+  override def toWecomBotTextMessage(token: String, msgType: MessageType, mentionedList: List[String]): MessageContent = {
     val textContent = s"接收到${level}级别的Sentry通知,异常信息:$message,根本原因:$culprit,请求路径:${event.request.url}.\n详细信息参见:$url."
-    new WecomBotRequest(TextMessage(token, textContent, mentionedList))
+    TextMessage(token, textContent, mentionedList)
   }
 
-  override def toWecomBotMarkdownRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
+  override def toWecomBotMarkdownMessage(token: String, msgType: MessageType, mentionedList: List[String]): MessageContent = {
     val keyColor = if (level.equalsIgnoreCase("error")) "warning" else "comment"
     val markdownContent = new MarkdownBuilder()
       .text("接收到").colored(keyColor, level).text("级别的").hrefLink("Sentry通知", url).text("具体信息:").newLine()
@@ -48,7 +47,7 @@ case class SentryRequest(@JsonProperty("project_name") projectName: String,
       //      .quoted().hrefLink("详细信息链接", url).newLine()
       .mentionUsers(mentionedList)
       .toMarkdownString
-    new WecomBotRequest(MarkdownMessage(token, markdownContent))
+    MarkdownMessage(token, markdownContent)
   }
 }
 

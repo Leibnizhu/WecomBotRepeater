@@ -1,5 +1,6 @@
 package io.github.leibnizhu.repeater.wecom.message
 
+import io.github.leibnizhu.repeater.wecom.message.MessageContent._
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
 import io.vertx.core.json.JsonObject
 
@@ -20,4 +21,10 @@ case class TextMessage(apiToken: String, text: String, mentionedList: List[Strin
   }
 
   override def token(): String = apiToken
+
+  override def toJsonObject(): JsonObject = new JsonObject()
+    .put(JSON_PARAM_TYPE, JSON_PARAM_TYPE_TEXT)
+    .put(JSON_PARAM_TOKEN, apiToken)
+    .put(JSON_PARAM_CONTENT, text)
+    .put(JSON_PARAM_MENTION_LIST, if (mentionedList == null) null else mentionedList.asJava)
 }

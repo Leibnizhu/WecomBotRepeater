@@ -1,4 +1,4 @@
-package io.github.leibnizhu.repeater.verticle
+package io.github.leibnizhu.repeater.http
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
@@ -16,7 +16,7 @@ class SentryRequestTest extends FunSuite {
 
   test("textMessageTest") {
     val sentryRequest = objectReader.readValue[SentryRequest](sentryRequestJson)
-    val reqJson = sentryRequest.toWecomBotRequest("12345678980", MessageType.Text, List()).msgContent.wholeJson()
+    val reqJson = sentryRequest.toWecomBotMessage("12345678980", MessageType.Text, List()).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "text")
     assert(reqJson.getJsonObject("text") != null)
@@ -25,7 +25,7 @@ class SentryRequestTest extends FunSuite {
 
   test("textMessageWithMentionTest") {
     val sentryRequest = objectReader.readValue[SentryRequest](sentryRequestJson)
-    val reqJson = sentryRequest.toWecomBotRequest("12345678980", MessageType.Text, List("18888888888")).msgContent.wholeJson()
+    val reqJson = sentryRequest.toWecomBotMessage("12345678980", MessageType.Text, List("18888888888")).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "text")
     assert(reqJson.getJsonObject("text") != null)
@@ -35,7 +35,7 @@ class SentryRequestTest extends FunSuite {
 
   test("markdownMessageTest") {
     val sentryRequest = objectReader.readValue[SentryRequest](sentryRequestJson)
-    val reqJson = sentryRequest.toWecomBotRequest("12345678980", MessageType.Markdown, List()).msgContent.wholeJson()
+    val reqJson = sentryRequest.toWecomBotMessage("12345678980", MessageType.Markdown, List()).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "markdown")
     assert(reqJson.getJsonObject("markdown") != null)
@@ -44,7 +44,7 @@ class SentryRequestTest extends FunSuite {
 
   test("markdownMessageWithMentionTest") {
     val sentryRequest = objectReader.readValue[SentryRequest](sentryRequestJson)
-    val reqJson = sentryRequest.toWecomBotRequest("12345678980", MessageType.Markdown, List("test@google.com")).msgContent.wholeJson()
+    val reqJson = sentryRequest.toWecomBotMessage("12345678980", MessageType.Markdown, List("test@google.com")).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "markdown")
     assert(reqJson.getJsonObject("markdown") != null)

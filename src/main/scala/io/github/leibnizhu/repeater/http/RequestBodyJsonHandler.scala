@@ -1,12 +1,14 @@
-package io.github.leibnizhu.repeater.verticle
+package io.github.leibnizhu.repeater.http
 
 import com.fasterxml.jackson.databind.{ObjectMapper, ObjectReader}
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
-import io.github.leibnizhu.repeater.Constants.{REQ_PARAM_MENTIONED_LIST, REQ_PARAM_WECOM_BOT_TOKEN, REQ_PARAM_WECOM_BOT_TYPE}
-import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, handlerException, successResponse}
+import io.github.leibnizhu.repeater.Constants._
+import io.github.leibnizhu.repeater.util.ResponseUtil
+import io.github.leibnizhu.repeater.util.ResponseUtil.{failResponse, handlerException}
 import io.github.leibnizhu.repeater.wecom.message.MessageType
-import io.vertx.core.Handler
+import io.vertx.core.eventbus.Message
 import io.vertx.core.json.JsonObject
+import io.vertx.core.{AsyncResult, Handler}
 import io.vertx.ext.web.RoutingContext
 import org.slf4j.Logger
 
@@ -37,7 +39,7 @@ trait RequestBodyJsonHandler[Req <: RequestEntity] {
           if (bodyAr.succeeded()) {
             try {
               val entityRequest = objectReader.readValue[Req](bodyAr.result().toString())
-              log.debug(s"接收到${requestName}请求,token:$token,请求内容:$entityRequest")
+              log.debug("接收到{}请求,token:{},请求内容:{}", requestName, token, entityRequest)
               doSendWecomBot(startTime, token, rc, entityRequest)
             } catch {
               case e: Exception =>
@@ -58,17 +60,13 @@ trait RequestBodyJsonHandler[Req <: RequestEntity] {
     val (request, response) = (rc.request, rc.response)
     val mentionedList = Option(request.getParam(REQ_PARAM_MENTIONED_LIST)).map(_.split(",").toList).orNull
     val msgType = Option(request.getParam(REQ_PARAM_WECOM_BOT_TYPE)).map(MessageType.withName).getOrElse(MessageType.Markdown)
-    entityRequest
-      .toWecomBotRequest(token, msgType, mentionedList)
-      .send(sendAr => {
-        val costTime = System.currentTimeMillis() - startTime
-        if (sendAr.succeeded()) {
-          val responseStr = sendAr.result().bodyAsString();
-          log.info(s"发送企业微信机器人请求成功, 耗时${costTime}毫秒,响应:{}", responseStr)
-          val result = new JsonObject().put("message", s"发送企业微信机器人请求成功, 耗时${costTime}毫秒").put("wecomResponse", responseStr)
-          response.end(successResponse(result, costTime).toString)
+    val wecomBotMsg = entityRequest.toWecomBotMessage(token, msgType, mentionedList)
+    vertx.eventBus().request(SEND_WECOM_BOT_EVENTBUS_ADDR, wecomBotMsg.toJsonObject())
+      .onComplete((ar: AsyncResult[Message[JsonObject]]) => {
+        if (ar.succeeded()) {
+          response.end(ar.result().body().toString)
         } else {
-          handlerException("发送企业微信机器人请求", startTime, response, sendAr.cause())
+          response.end(ResponseUtil.failResponse(ar.cause(), System.currentTimeMillis() - startTime).toString)
         }
       })
   }

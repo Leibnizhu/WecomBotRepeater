@@ -1,4 +1,4 @@
-package io.github.leibnizhu.repeater.verticle
+package io.github.leibnizhu.repeater.http
 
 import io.github.leibnizhu.repeater.Constants
 import io.github.leibnizhu.repeater.Constants._
@@ -43,12 +43,12 @@ class HttpVerticle extends AbstractVerticle {
     server.requestHandler(mainRouter.handle(_)).listen(port).onComplete(ar => if (ar.succeeded()) {
       log.info("监听{}端口的HTTP服务器启动成功", port)
     } else {
-      log.error("监听{}端口的HTTP服务器失败，原因：{}", Seq[AnyRef](port, ar.cause().getLocalizedMessage): _*)
+      log.error("监听{}端口的HTTP服务器失败，原因：{}", Array(port, ar.cause().getLocalizedMessage): _*)
     })
   }
 
   override def stop(): Unit = {
-    server.close(res => log.info("HTTP服务器关闭" + (if (res.succeeded) "成功" else "失败")))
+    server.close(res => log.info("HTTP服务器关闭{}",  if (res.succeeded) "成功" else "失败"))
     super.stop()
   }
 }

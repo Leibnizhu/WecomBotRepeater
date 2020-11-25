@@ -35,9 +35,13 @@ object ResponseUtil {
       .end(failResponse("企业微信机器人token不能为空!", 0).toString)
   }
 
-  def handlerException(errMsg: String, startTime: Long, response: HttpServerResponse, cause: Throwable): Future[Void] = {
+  def failResponseWithMsg(errMsg: String, startTime: Long, cause: Throwable): JsonObject = {
     val costTime = System.currentTimeMillis() - startTime
-    log.error(s"${errMsg}失败, 耗时${costTime}毫秒:" + cause.getMessage, cause)
-    response.end(failResponse(cause, costTime).toString)
+    log.error(s"${errMsg}失败, 耗时${costTime}毫秒:${cause.getMessage}", cause)
+    failResponse(cause, costTime)
+  }
+
+  def handlerException(errMsg: String, startTime: Long, response: HttpServerResponse, cause: Throwable): Future[Void] = {
+    response.end(failResponseWithMsg(errMsg, startTime, cause).toString)
   }
 }

@@ -1,5 +1,6 @@
 package io.github.leibnizhu.repeater.wecom.message
 
+import io.github.leibnizhu.repeater.wecom.message.MessageContent.{JSON_PARAM_CONTENT, JSON_PARAM_TOKEN, JSON_PARAM_TYPE, JSON_PARAM_TYPE_MARKDOWN}
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
 import io.vertx.core.json.JsonObject
 
@@ -12,6 +13,12 @@ case class MarkdownMessage(apiToken: String, content: String) extends MessageCon
   override def contentJsonObject(): JsonObject = new JsonObject().put("content", content)
 
   override def token(): String = apiToken
+
+  override def toJsonObject(): JsonObject = new JsonObject()
+    .put(JSON_PARAM_TYPE, JSON_PARAM_TYPE_MARKDOWN)
+    .put(JSON_PARAM_TOKEN, apiToken)
+    .put(JSON_PARAM_CONTENT, content)
+
 }
 
 object MarkdownMessage {

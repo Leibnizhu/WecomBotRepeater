@@ -1,4 +1,4 @@
-package io.github.leibnizhu.repeater.verticle
+package io.github.leibnizhu.repeater.http
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.{DefaultScalaModule, ScalaObjectMapper}
@@ -19,7 +19,7 @@ class GrafanaRequestTest extends FunSuite {
 
   test("textMessageTest") {
     val grafanaRequest = objectReader.readValue[GrafanaRequest](grafanaRequestJson)
-    val reqJson = grafanaRequest.toWecomBotRequest("12345678980", MessageType.Text, List()).msgContent.wholeJson()
+    val reqJson = grafanaRequest.toWecomBotMessage("12345678980", MessageType.Text, List()).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "text")
     assert(reqJson.getJsonObject("text") != null)
@@ -28,7 +28,7 @@ class GrafanaRequestTest extends FunSuite {
 
   test("textMessageWithMentionTest") {
     val grafanaRequest = objectReader.readValue[GrafanaRequest](grafanaRequestJson)
-    val reqJson = grafanaRequest.toWecomBotRequest("12345678980", MessageType.Text, List("18888888888")).msgContent.wholeJson()
+    val reqJson = grafanaRequest.toWecomBotMessage("12345678980", MessageType.Text, List("18888888888")).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "text")
     assert(reqJson.getJsonObject("text") != null)
@@ -38,7 +38,7 @@ class GrafanaRequestTest extends FunSuite {
 
   test("markdownMessageTest") {
     val grafanaRequest = objectReader.readValue[GrafanaRequest](grafanaRequestJson)
-    val reqJson = grafanaRequest.toWecomBotRequest("12345678980", MessageType.Markdown, List()).msgContent.wholeJson()
+    val reqJson = grafanaRequest.toWecomBotMessage("12345678980", MessageType.Markdown, List()).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "markdown")
     assert(reqJson.getJsonObject("markdown") != null)
@@ -47,7 +47,7 @@ class GrafanaRequestTest extends FunSuite {
 
   test("markdownMessageWithMentionTest") {
     val grafanaRequest = objectReader.readValue[GrafanaRequest](grafanaRequestJson)
-    val reqJson = grafanaRequest.toWecomBotRequest("12345678980", MessageType.Markdown, List("test@google.com")).msgContent.wholeJson()
+    val reqJson = grafanaRequest.toWecomBotMessage("12345678980", MessageType.Markdown, List("test@google.com")).wholeJson()
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "markdown")
     assert(reqJson.getJsonObject("markdown") != null)

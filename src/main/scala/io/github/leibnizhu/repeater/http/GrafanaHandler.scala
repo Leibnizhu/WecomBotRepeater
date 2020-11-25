@@ -1,14 +1,13 @@
-package io.github.leibnizhu.repeater.verticle
+package io.github.leibnizhu.repeater.http
 
 import java.util.concurrent.ConcurrentHashMap
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectReader
 import io.github.leibnizhu.repeater.Constants
-import io.github.leibnizhu.repeater.wecom.WecomBotRequest
 import io.github.leibnizhu.repeater.wecom.message.MarkdownMessage.MarkdownBuilder
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
-import io.github.leibnizhu.repeater.wecom.message.{MarkdownMessage, TextMessage}
+import io.github.leibnizhu.repeater.wecom.message.{MarkdownMessage, MessageContent, TextMessage}
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.{Handler, Vertx}
 import io.vertx.ext.web.RoutingContext
@@ -85,24 +84,27 @@ case class GrafanaRequest(@JsonProperty dashboardId: Int,
                           @JsonProperty tags: Map[String, String],
                           @JsonProperty title: String
                          ) extends RequestEntity {
-  override def toWecomBotTextRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
+  override def toWecomBotTextMessage(token: String, msgType: MessageType, mentionedList: List[String]): MessageContent = {
     val textContent = s"标题:$title,触发规则:$ruleName,信息:$message"
-    new WecomBotRequest(TextMessage(token, textContent, mentionedList))
+    TextMessage(token, textContent, mentionedList)
   }
 
-  override def toWecomBotMarkdownRequest(token: String, msgType: MessageType, mentionedList: List[String]): WecomBotRequest = {
+  override def toWecomBotMarkdownMessage(token: String, msgType: MessageType, mentionedList: List[String]): MessageContent = {
     val isOk = title.startsWith("[OK]")
     val isAlert = title.startsWith("[Alerting]")
     val alertSet = GrafanaHandler.curAlerting(dashboardId, ruleName, isOk, isAlert)
     val keyColor = if (isOk) "info" else if (isAlert) "warning" else "comment"
-    val markdownContent = new MarkdownBuilder()
+    val messageBuilder = new MarkdownBuilder()
       .text("接收到Grafana通知,具体信息:").newLine()
       .quoted().text("触发规则:").hrefLink(ruleName, ruleUrl).newLine()
       .quoted().text("标题:").colored(keyColor, title).newLine()
       .quoted().text("信息:").colored(keyColor, message).newLine()
-      .quoted().text("当前Dashboard还存在的警告:").colored("warning", String.join(",", alertSet.asJava)).newLine()
-      .mentionUsers(mentionedList)
-      .toMarkdownString
-    new WecomBotRequest(MarkdownMessage(token, markdownContent))
+    if (alertSet.isEmpty) {
+      messageBuilder.quoted().colored("comment", "当前Dashboard没有警告了").newLine()
+    } else {
+      messageBuilder.quoted().text("当前Dashboard还存在的警告:").colored("warning", String.join(",", alertSet.asJava)).newLine()
+    }
+    val markdownContent = messageBuilder.mentionUsers(mentionedList).toMarkdownString
+    MarkdownMessage(token, markdownContent)
   }
 }
