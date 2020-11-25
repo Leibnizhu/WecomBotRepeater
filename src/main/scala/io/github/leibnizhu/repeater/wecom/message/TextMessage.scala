@@ -22,9 +22,7 @@ case class TextMessage(apiToken: String, text: String, mentionedList: List[Strin
 
   override def token(): String = apiToken
 
-  override def toJsonObject(): JsonObject = new JsonObject()
-    .put(JSON_PARAM_TYPE, JSON_PARAM_TYPE_TEXT)
-    .put(JSON_PARAM_TOKEN, apiToken)
+  override def serializeToJsonObject(json: JsonObject): JsonObject = json
     .put(JSON_PARAM_CONTENT, text)
     .put(JSON_PARAM_MENTION_LIST, if (mentionedList == null) null else mentionedList.asJava)
 }

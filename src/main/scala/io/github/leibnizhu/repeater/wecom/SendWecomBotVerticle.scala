@@ -11,6 +11,8 @@ import io.vertx.core.{AbstractVerticle, AsyncResult, Handler}
 import io.vertx.ext.web.client.{HttpResponse, WebClient, WebClientOptions}
 import org.slf4j.LoggerFactory
 
+import scala.util.Try
+
 /**
  * @author Leibniz on 2020/11/25 8:38 AM
  */
@@ -24,14 +26,18 @@ class SendWecomBotVerticle extends AbstractVerticle {
 
   private def registerEventBus(): Unit = {
     vertx.eventBus().consumer(SEND_WECOM_BOT_EVENTBUS_ADDR)
-      .handler((eventBusMsg: Message[JsonObject]) => {
-        val msgContent = MessageContent.fromJsonObject(eventBusMsg.body())
-        val reqJson = msgContent.wholeJson()
-        if (log.isDebugEnabled) {
-          log.debug("构造企业微信机器人请求:{}", reqJson)
+      .handler((eventBusMsg: Message[JsonObject]) =>
+        Try({
+          val msgContent = MessageContent.deserializeFromJsonObject(eventBusMsg.body())
+          val reqJson = msgContent.wholeJson()
+          if (log.isDebugEnabled) {
+            log.debug("构造企业微信机器人请求:{}", reqJson)
+          }
+          sendWecomBotMessage(msgContent.token(), reqJson, eventBusMsg)
+        }) recover {
+          case e: Throwable => eventBusMsg.reply(ResponseUtil.failResponse(e, 0L))
         }
-        sendWecomBotMessage(msgContent.token(), reqJson, eventBusMsg)
-      })
+      )
   }
 
   private def sendWecomBotMessage(token: String, reqJson: JsonObject, eventBusMsg: Message[JsonObject]): Unit = {
