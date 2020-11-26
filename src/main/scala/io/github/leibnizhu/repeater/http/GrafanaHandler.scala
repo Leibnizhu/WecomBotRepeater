@@ -4,7 +4,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectReader
-import io.github.leibnizhu.repeater.Constants
 import io.github.leibnizhu.repeater.wecom.message.MarkdownMessage.MarkdownBuilder
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
 import io.github.leibnizhu.repeater.wecom.message.{MarkdownMessage, MessageContent, TextMessage}
@@ -18,24 +17,25 @@ import scala.collection.JavaConverters._
 /**
  * @author Leibniz on 2020/10/28 11:40 AM
  */
-object GrafanaHandler extends RequestBodyJsonHandler[GrafanaRequest] {
+class GrafanaHandler(vertx: Vertx) extends RequestBodyJsonHandler[GrafanaRequest] {
   private val alertingMapFilePath = "./alertingMap.json"
 
   override protected val requestName: String = "Grafana"
   override protected val log: Logger = LoggerFactory.getLogger(getClass)
-
   override protected val objectReader: ObjectReader = mapper.readerFor(classOf[GrafanaRequest])
 
-  private def saveAlertingMap(): Unit = {
-    val objectWriter = mapper.writerFor(classOf[ConcurrentHashMap[String, Set[String]]])
-    Constants.vertx.fileSystem().writeFileBlocking(alertingMapFilePath, Buffer.buffer(objectWriter.writeValueAsString(alertingMap)))
+  {
+    val alertingMap: ConcurrentHashMap[String, Set[String]] = {
+      Runtime.getRuntime.addShutdownHook(new Thread(() => {
+        saveAlertingMap()
+      }))
+      Option(loadAlertingMap()).getOrElse(new ConcurrentHashMap())
+    }
+    GrafanaHandler.alertingMap = alertingMap
   }
 
   private def loadAlertingMap(): ConcurrentHashMap[String, Set[String]] = {
-    if (Constants.vertx == null) {
-      Constants.vertx = Vertx.vertx()
-    }
-    val fs = Constants.vertx.fileSystem()
+    val fs = vertx.fileSystem()
     if (fs.existsBlocking(alertingMapFilePath)) {
       val jsonFileBuf = fs.readFileBlocking(alertingMapFilePath)
       if (jsonFileBuf != null) {
@@ -46,12 +46,21 @@ object GrafanaHandler extends RequestBodyJsonHandler[GrafanaRequest] {
     null
   }
 
-  private val alertingMap: ConcurrentHashMap[String, Set[String]] = {
-    Runtime.getRuntime.addShutdownHook(new Thread(() => {
-      saveAlertingMap()
-    }))
-    Option(loadAlertingMap()).getOrElse(new ConcurrentHashMap())
+  private def saveAlertingMap(): Unit = {
+    val objectWriter = mapper.writerFor(classOf[ConcurrentHashMap[String, Set[String]]])
+    val contentBuffer = Buffer.buffer(objectWriter.writeValueAsString(GrafanaHandler.alertingMap))
+    val fs = vertx.fileSystem()
+    if (!fs.existsBlocking(alertingMapFilePath)) {
+      fs.createFileBlocking(alertingMapFilePath)
+    }
+    fs.writeFileBlocking(alertingMapFilePath, contentBuffer)
   }
+
+  def grafanaToBot: Handler[RoutingContext] = parseRequestBodyAndSendBot
+}
+
+object GrafanaHandler {
+  var alertingMap = new ConcurrentHashMap[String, Set[String]]()
 
   def curAlerting(dashboardId: Int, ruleName: String, isOk: Boolean, isAlert: Boolean): Set[String] = {
     var alertingSet = alertingMap.computeIfAbsent(dashboardId.toString, _ => Set())
@@ -63,13 +72,7 @@ object GrafanaHandler extends RequestBodyJsonHandler[GrafanaRequest] {
     alertingMap.put(dashboardId.toString, alertingSet)
     alertingSet
   }
-
-  def grafanaToBot: Handler[RoutingContext] = parseRequestBodyAndSendBot
 }
-
-case class EvalMatch(@JsonProperty value: Int,
-                     @JsonProperty metric: String,
-                     @JsonProperty tags: Map[String, String])
 
 case class GrafanaRequest(@JsonProperty dashboardId: Int,
                           @JsonProperty evalMatches: List[EvalMatch],
@@ -108,3 +111,7 @@ case class GrafanaRequest(@JsonProperty dashboardId: Int,
     MarkdownMessage(token, markdownContent)
   }
 }
+
+case class EvalMatch(@JsonProperty value: Int,
+                     @JsonProperty metric: String,
+                     @JsonProperty tags: Map[String, String])

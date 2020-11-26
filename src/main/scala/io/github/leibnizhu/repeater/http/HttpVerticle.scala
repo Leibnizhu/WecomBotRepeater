@@ -1,6 +1,5 @@
 package io.github.leibnizhu.repeater.http
 
-import io.github.leibnizhu.repeater.Constants
 import io.github.leibnizhu.repeater.Constants._
 import io.github.leibnizhu.repeater.util.ResponseUtil
 import io.vertx.core.AbstractVerticle
@@ -16,7 +15,6 @@ class HttpVerticle extends AbstractVerticle {
 
   override def start(): Unit = {
     //初始化工具类/组件
-    Constants.init(vertx.getOrCreateContext())
     this.mainRouter = Router.router(vertx)
     this.server = vertx.createHttpServer
     mountRouters() //挂载所有子路由
@@ -24,9 +22,10 @@ class HttpVerticle extends AbstractVerticle {
   }
 
   def mountRouters(): Unit = {
-    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE/:$REQ_PARAM_MENTIONED_LIST").handler(GrafanaHandler.grafanaToBot)
-    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE").handler(GrafanaHandler.grafanaToBot)
-    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN").handler(GrafanaHandler.grafanaToBot)
+    val grafanaHandler = new GrafanaHandler(vertx)
+    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE/:$REQ_PARAM_MENTIONED_LIST").handler(grafanaHandler.grafanaToBot)
+    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE").handler(grafanaHandler.grafanaToBot)
+    mainRouter.post(s"/grafana/:$REQ_PARAM_WECOM_BOT_TOKEN").handler(grafanaHandler.grafanaToBot)
     mainRouter.post(s"/grafana").handler(ResponseUtil.emptyTokenError)
     mainRouter.post(s"/sentry/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE/:$REQ_PARAM_MENTIONED_LIST").handler(SentryHandler.sentryToBot)
     mainRouter.post(s"/sentry/:$REQ_PARAM_WECOM_BOT_TOKEN/:$REQ_PARAM_WECOM_BOT_TYPE").handler(SentryHandler.sentryToBot)

@@ -61,7 +61,7 @@ trait RequestBodyJsonHandler[Req <: RequestEntity] {
     val mentionedList = Option(request.getParam(REQ_PARAM_MENTIONED_LIST)).map(_.split(",").toList).orNull
     val msgType = Option(request.getParam(REQ_PARAM_WECOM_BOT_TYPE)).map(MessageType.withName).getOrElse(MessageType.Markdown)
     val wecomBotMsg = entityRequest.toWecomBotMessage(token, msgType, mentionedList)
-    vertx.eventBus().request(SEND_WECOM_BOT_EVENTBUS_ADDR, wecomBotMsg.serializeToJsonObject())
+    rc.vertx().eventBus().request(SEND_WECOM_BOT_EVENTBUS_ADDR, wecomBotMsg.serializeToJsonObject())
       .onComplete((ar: AsyncResult[Message[JsonObject]]) => {
         if (ar.succeeded()) {
           response.end(ar.result().body().toString)

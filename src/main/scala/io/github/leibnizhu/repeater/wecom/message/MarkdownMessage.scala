@@ -1,6 +1,6 @@
 package io.github.leibnizhu.repeater.wecom.message
 
-import io.github.leibnizhu.repeater.wecom.message.MessageContent.JSON_PARAM_CONTENT
+import io.github.leibnizhu.repeater.Constants._
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
 import io.vertx.core.json.JsonObject
 
@@ -15,7 +15,7 @@ case class MarkdownMessage(apiToken: String, content: String) extends MessageCon
   override def token(): String = apiToken
 
   override def serializeToJsonObject(json: JsonObject): JsonObject = json
-    .put(JSON_PARAM_CONTENT, content)
+    .put(EVENTBUS_JSON_PARAM_CONTENT, content)
 
 }
 

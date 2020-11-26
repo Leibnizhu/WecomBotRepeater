@@ -18,9 +18,10 @@ import scala.util.Try
  */
 class SendWecomBotVerticle extends AbstractVerticle {
   private val log = LoggerFactory.getLogger(getClass)
+  private var client: WebClient = _
 
   override def start(): Unit = {
-    Constants.init(vertx.getOrCreateContext())
+    this.client = WebClient.create(vertx, new WebClientOptions().setKeepAlive(true))
     registerEventBus()
   }
 
@@ -42,7 +43,7 @@ class SendWecomBotVerticle extends AbstractVerticle {
 
   private def sendWecomBotMessage(token: String, reqJson: JsonObject, eventBusMsg: Message[JsonObject]): Unit = {
     val startTime = System.currentTimeMillis()
-    SendWecomBotVerticle.doSendReq(reqJson, token, sendAr => {
+    doSendReq(reqJson, token, sendAr => {
       val costTime = System.currentTimeMillis() - startTime
       val responseJson = if (sendAr.succeeded()) {
         val responseStr = sendAr.result().bodyAsString();
@@ -55,10 +56,6 @@ class SendWecomBotVerticle extends AbstractVerticle {
       eventBusMsg.reply(responseJson)
     })
   }
-}
-
-object SendWecomBotVerticle {
-  private val client = WebClient.create(Constants.vertx, new WebClientOptions().setKeepAlive(true))
 
   def doSendReq(req: JsonObject, token: String, handler: Handler[AsyncResult[HttpResponse[Buffer]]]): Unit = {
     client

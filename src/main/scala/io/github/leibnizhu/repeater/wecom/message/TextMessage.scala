@@ -1,6 +1,6 @@
 package io.github.leibnizhu.repeater.wecom.message
 
-import io.github.leibnizhu.repeater.wecom.message.MessageContent._
+import io.github.leibnizhu.repeater.Constants._
 import io.github.leibnizhu.repeater.wecom.message.MessageType.MessageType
 import io.vertx.core.json.JsonObject
 
@@ -23,6 +23,6 @@ case class TextMessage(apiToken: String, text: String, mentionedList: List[Strin
   override def token(): String = apiToken
 
   override def serializeToJsonObject(json: JsonObject): JsonObject = json
-    .put(JSON_PARAM_CONTENT, text)
-    .put(JSON_PARAM_MENTION_LIST, if (mentionedList == null) null else mentionedList.asJava)
+    .put(EVENTBUS_JSON_PARAM_CONTENT, text)
+    .put(EVENTBUS_JSON_PARAM_MENTION_LIST, if (mentionedList == null) null else mentionedList.asJava)
 }
