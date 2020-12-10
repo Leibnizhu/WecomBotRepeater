@@ -23,7 +23,7 @@ class GrafanaRequestTest extends FunSuite {
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "text")
     assert(reqJson.getJsonObject("text") != null)
-    assert(reqJson.getJsonObject("text").getString("content") == "标题:[Alerting] Test notification,触发规则:Test notification,信息:Someone is testing the alert notification within Grafana.")
+    assert(reqJson.getJsonObject("text").getString("content") == "标题:[Alerting] Test notification,触发规则:Test notification,信息:Someone is testing the alert notification within Grafana.,当前Dashboard还存在的警告:Test notification")
   }
 
   test("textMessageWithMentionTest") {
@@ -32,7 +32,7 @@ class GrafanaRequestTest extends FunSuite {
     log.info("requset json:{}", reqJson)
     assert(reqJson.getString("msgtype") == "text")
     assert(reqJson.getJsonObject("text") != null)
-    assert(reqJson.getJsonObject("text").getString("content") == "标题:[Alerting] Test notification,触发规则:Test notification,信息:Someone is testing the alert notification within Grafana.")
+    assert(reqJson.getJsonObject("text").getString("content") == "标题:[Alerting] Test notification,触发规则:Test notification,信息:Someone is testing the alert notification within Grafana.,当前Dashboard还存在的警告:Test notification")
     assert(reqJson.getJsonObject("text").getJsonArray("mentioned_mobile_list") == new JsonArray(List("18888888888").asJava))
   }
 
